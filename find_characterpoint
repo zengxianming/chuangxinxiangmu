@@ -1,0 +1,42 @@
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+df = pd.read_csv('C:/Users/D/Desktop/result1.csv')
+vec_list = df.vec_no.unique().tolist()
+print(vec_list)
+
+# find mode and mode de index first and last
+
+
+def find_mode(df, vec_no):
+    from scipy.stats import mode
+    b = df[df.vec_no == vec_no].len.tolist()
+    c = []
+    for i in b:
+        c.append(int(i))
+    first_index = c.index(mode(c).mode) - 10
+    last_index = int(mode(c).count) + int(c.index(mode(c).mode)-1) + 10
+    # 如果是直线穿过
+    return first_index, last_index, mode(c).mode
+
+
+def find_character(df, vec_no):
+    y = find_mode(df, vec_no)[2]
+    z1 = np.polyfit(df[df.vec_no == vec_no][: find_mode(df, vec_no)[0]].t,
+                    df[df.vec_no == vec_no][: find_mode(df, vec_no)[0]].len, 1)
+    t1 = (y - z1[1]) / z1[0]
+    z2 = np.polyfit(df[df.vec_no == vec_no][find_mode(df, vec_no)[1]:].t,
+                    df[df.vec_no == vec_no][find_mode(df, vec_no)[1]:].len, 1)
+    t2 = (y - z2[1]) / z2[0]
+    return vec_no, [float(t1), float(y)], [float(t2), float(y)], z1[0], z2[0]
+
+character_data = pd.DataFrame(columns=['vec_no', 'f_point', 'l_point', 'f_k', 'l_k'])
+for i in vec_list:
+    character_data=character_data.append({'vec_no': find_character(df, i)[0], 'f_point': find_character(df, i)[1],
+                                          'l_point': find_character(df,i)[2], 'f_k': find_character(df, i)[3],
+                                          'l_k': find_character(df, i)[4]}, ignore_index=True)
+print(character_data)
+ch = pd.read_csv('C:/Users/D/Desktop/character.csv')
